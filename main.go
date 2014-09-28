@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"image"
+	"image/color"
 	_ "image/png"
 	"os"
 	"strconv"
@@ -48,7 +49,7 @@ func convert(file *os.File) (string, error) {
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
         plots += "M " + strconv.Itoa(START_X) + " " + strconv.Itoa((y*pixelSize) + START_Y) + "\n"
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			plots += pixel((x*pixelSize) + START_X, (y*pixelSize) + START_Y, img.At(x, y).Color())
+			plots += pixel((x*pixelSize) + START_X, (y*pixelSize) + START_Y, img.At(x, y))
 		}
 	}
 	return plots, nil
