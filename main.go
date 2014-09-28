@@ -38,11 +38,12 @@ func convert(file *os.File) (string, error) {
 	plots := ""
 	bounds := img.Bounds()
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+        plots += "L 0 " + strconv.Itoa(y*pixelSize) + "\n"
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			r, g, b, _ := img.At(x, y).RGBA()
 			shade := int((r>>13 + g>>13 + b>>13) / 3)
 			// fmt.Println(shade)
-			plots = plots + pixel(x*pixelSize, y*pixelSize, shade)
+			plots += pixel(x*pixelSize, y*pixelSize, shade)
 		}
 	}
 	return plots, nil
