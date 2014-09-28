@@ -14,4 +14,4 @@ Convert a jpg image to a vplot file
 
 ## Use
 
-    jpg2vplot ./fixtures/test.jpg
+    jpg2vplot ./fixtures/test.jpg ./test.vplot
