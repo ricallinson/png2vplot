@@ -5,12 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"image"
-	_ "image/jpeg"
+	_ "image/png"
 	"os"
 	"strconv"
 )
 
-var pixelSize = 10
+var pixelSize = 100
+var START_X = 1500 // hack to match the cords of my plotter
+var START_Y = 2000 // hack to match the cords of my plotter
 
 func pixel(x int, y int, shade int) (pixel string) {
 	if shade < 1 {
@@ -38,12 +40,12 @@ func convert(file *os.File) (string, error) {
 	plots := ""
 	bounds := img.Bounds()
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-        plots += "L 0 " + strconv.Itoa(y*pixelSize) + "\n"
+        plots += "L " + strconv.Itoa(START_X) + " " + strconv.Itoa((y*pixelSize) + START_Y) + "\n"
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			r, g, b, _ := img.At(x, y).RGBA()
-			shade := int((r>>13 + g>>13 + b>>13) / 3)
+			shade := int((r>>10 + g>>10 + b>>10) / 3)
 			// fmt.Println(shade)
-			plots += pixel(x*pixelSize, y*pixelSize, shade)
+			plots += pixel((x*pixelSize) + START_X, (y*pixelSize) + START_Y, shade)
 		}
 	}
 	return plots, nil
