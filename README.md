@@ -14,4 +14,4 @@ Convert a png image to a vplot file
 
 ## Use
 
-    png2vplot ./fixtures/test.jpg ./test.vplot
+    png2vplot ./fixtures/test.png ./test.vplot

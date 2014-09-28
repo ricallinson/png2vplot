@@ -14,18 +14,24 @@ var pixelSize = 100
 var START_X = 1500 // hack to match the cords of my plotter
 var START_Y = 2000 // hack to match the cords of my plotter
 
-func pixel(x int, y int, shade int) (pixel string) {
-	if shade < 1 {
+func pixel(x int, y int, c color.Color) (pixel string) {
+	r, g, b, _ := c.RGBA()
+	shade := int((r>>10 + g>>10 + b>>10) / 3)
+	// fmt.Println(shade)
+	if shade > 60 {
+		return "M " + strconv.Itoa(x+pixelSize) + " " + strconv.Itoa(y) + "\n"
+	}
+	if shade <= 1 {
 		shade = 1
 	}
 	dir := true
 	for xoff := x; xoff < x+pixelSize; xoff = xoff + shade {
-		pixel += "M " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
+		pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
 		if dir {
-			pixel += "M " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelSize) + "\n"
+			pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelSize) + "\n"
 			dir = false
 		} else {
-			pixel += "M " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
+			pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
 			dir = true
 		}
 	}
@@ -40,12 +46,9 @@ func convert(file *os.File) (string, error) {
 	plots := ""
 	bounds := img.Bounds()
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-        plots += "L " + strconv.Itoa(START_X) + " " + strconv.Itoa((y*pixelSize) + START_Y) + "\n"
+        plots += "M " + strconv.Itoa(START_X) + " " + strconv.Itoa((y*pixelSize) + START_Y) + "\n"
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			r, g, b, _ := img.At(x, y).RGBA()
-			shade := int((r>>10 + g>>10 + b>>10) / 3)
-			// fmt.Println(shade)
-			plots += pixel((x*pixelSize) + START_X, (y*pixelSize) + START_Y, shade)
+			plots += pixel((x*pixelSize) + START_X, (y*pixelSize) + START_Y, img.At(x, y).Color())
 		}
 	}
 	return plots, nil
