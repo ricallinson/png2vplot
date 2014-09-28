@@ -11,19 +11,20 @@ import (
 	"strconv"
 )
 
-var pixelSize = 100
-var START_X = 1500 // hack to match the cords of my plotter
-var START_Y = 2000 // hack to match the cords of my plotter
+var pixelSize = 50 // Good for a "Fine Faber-Castell" as each pixel is 5mm x 5mm.
+var START_X = 1500 // hack to match the cords of my plotter.
+var START_Y = 2000 // hack to match the cords of my plotter.
 
 func pixel(x int, y int, c color.Color) (pixel string) {
 	r, g, b, _ := c.RGBA()
-	shade := int((r>>10 + g>>10 + b>>10) / 3)
-	// fmt.Println(shade)
+	shade := int((r>>12 + g>>12 + b>>12) / 3)
 	if shade > 60 {
+		// Not too light.
 		return "M " + strconv.Itoa(x+pixelSize) + " " + strconv.Itoa(y) + "\n"
 	}
-	if shade <= 1 {
-		shade = 1
+	if shade <= 3 {
+		// Not too dark.
+		shade = 3
 	}
 	dir := true
 	for xoff := x; xoff < x+pixelSize; xoff = xoff + shade {
