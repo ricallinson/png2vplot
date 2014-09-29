@@ -11,7 +11,9 @@ import (
 	"strconv"
 )
 
+// This pixel size should be a cli arg and should ajust the shading min/max.
 var pixelSize = 50 // Good for a "Fine Faber-Castell" as each pixel is 5mm x 5mm.
+// These should not be here.
 var START_X = 1500 // hack to match the cords of my plotter.
 var START_Y = 2000 // hack to match the cords of my plotter.
 
@@ -22,9 +24,9 @@ func pixel(x int, y int, c color.Color) (pixel string) {
 		// Not too light.
 		return "M " + strconv.Itoa(x+pixelSize) + " " + strconv.Itoa(y) + "\n"
 	}
-	if shade <= 3 {
+	if shade <= 4 {
 		// Not too dark.
-		shade = 3
+		shade = 4
 	}
 	dir := true
 	for xoff := x; xoff < x+pixelSize; xoff = xoff + shade {
