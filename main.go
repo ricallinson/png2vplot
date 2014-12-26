@@ -11,29 +11,21 @@ import (
 	"strconv"
 )
 
-// This pixel size should be a cli arg and should ajust the shading min/max.
-// 50: Good for a "Fine Faber-Castell" as each pixel is 5mm x 5mm.
-var pixelSize = 50 
-// These should not be here.
-var START_X = 1500 // hack to match the cords of my plotter.
-var START_Y = 2000 // hack to match the cords of my plotter.
-
-func pixel(x int, y int, c color.Color) (pixel string, shade int) {
+func pixel(x int, y int, c color.Color, pixelsize int) (pixel string, shade int) {
 	r, g, b, _ := c.RGBA()
 	shade = int((r>>12 + g>>12 + b>>12) / 3)
 	if shade >= 15 {
 		// Not too light.
-		return "M " + strconv.Itoa(x+pixelSize) + " " + strconv.Itoa(y) + "\n", 15
+		return "M " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y) + "\n", 15
 	}
 	if shade <= 4 {
 		// Not too dark.
 		shade = 4
 	}
 	down := true
-	for xoff := x; xoff < x+pixelSize; xoff = xoff + shade {
-		pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
+	for xoff := x; xoff < x+pixelsize; xoff = xoff + shade {
 		if down {
-			pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelSize) + "\n"
+			pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize) + "\n"
 			down = false
 		} else {
 			pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
@@ -43,7 +35,7 @@ func pixel(x int, y int, c color.Color) (pixel string, shade int) {
 	return pixel, shade
 }
 
-func convert(file *os.File) (string, error) {
+func convert(file *os.File, xoffset int, yoffset int, pixelsize int) (string, error) {
 	img, _, err := image.Decode(file)
 	if err != nil {
 		return "", err
@@ -51,9 +43,9 @@ func convert(file *os.File) (string, error) {
 	plots := ""
 	bounds := img.Bounds()
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-        plots += "M " + strconv.Itoa(START_X) + " " + strconv.Itoa((y*pixelSize) + START_Y) + "\n"
+		plots += "M " + strconv.Itoa(xoffset) + " " + strconv.Itoa((y*pixelsize)+yoffset) + "\n"
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			plot, shade := pixel((x*pixelSize) + START_X, (y*pixelSize) + START_Y, img.At(x, y))
+			plot, shade := pixel((x*pixelsize)+xoffset, (y*pixelsize)+yoffset, img.At(x, y), pixelsize)
 			plots += plot
 			fmt.Printf("%02d", shade)
 		}
@@ -63,6 +55,10 @@ func convert(file *os.File) (string, error) {
 }
 
 func main() {
+
+	var xoffset = flag.Int("x", 1500, "the offset to use for the X dimension")
+	var yoffset = flag.Int("y", 2000, "the offset to use for the Y dimension")
+	var pixelsize = flag.Int("p", 5, "the size of pixel to plot (1 = 1mm)")
 
 	flag.Parse()
 	source := flag.Arg(0)
@@ -93,7 +89,7 @@ func main() {
 	defer sFile.Close()
 
 	w := bufio.NewWriter(dFile)
-	plots, err3 := convert(sFile)
+	plots, err3 := convert(sFile, *xoffset, *yoffset, *pixelsize * 10)
 	if err3 != nil {
 		fmt.Println(err3)
 		return
