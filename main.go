@@ -14,7 +14,7 @@ import (
 // This pixel size should be a cli arg and should ajust the shading min/max.
 // 50: Good for a "Fine Faber-Castell" as each pixel is 5mm x 5mm.
 // 100: Good for chalk as each pixel is 10mm x 10mm.
-var pixelSize = 100 
+var pixelSize = 50 
 // These should not be here.
 var START_X = 1500 // hack to match the cords of my plotter.
 var START_Y = 2000 // hack to match the cords of my plotter.
@@ -22,7 +22,8 @@ var START_Y = 2000 // hack to match the cords of my plotter.
 func pixel(x int, y int, c color.Color) (pixel string) {
 	r, g, b, _ := c.RGBA()
 	shade := int((r>>12 + g>>12 + b>>12) / 3)
-	if shade > 60 {
+	fmt.Println(shade)
+	if shade >= 15 {
 		// Not too light.
 		return "M " + strconv.Itoa(x+pixelSize) + " " + strconv.Itoa(y) + "\n"
 	}
