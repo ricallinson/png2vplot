@@ -13,36 +13,34 @@ import (
 
 // This pixel size should be a cli arg and should ajust the shading min/max.
 // 50: Good for a "Fine Faber-Castell" as each pixel is 5mm x 5mm.
-// 100: Good for chalk as each pixel is 10mm x 10mm.
 var pixelSize = 50 
 // These should not be here.
 var START_X = 1500 // hack to match the cords of my plotter.
 var START_Y = 2000 // hack to match the cords of my plotter.
 
-func pixel(x int, y int, c color.Color) (pixel string) {
+func pixel(x int, y int, c color.Color) (pixel string, shade int) {
 	r, g, b, _ := c.RGBA()
-	shade := int((r>>12 + g>>12 + b>>12) / 3)
-	fmt.Println(shade)
+	shade = int((r>>12 + g>>12 + b>>12) / 3)
 	if shade >= 15 {
 		// Not too light.
-		return "M " + strconv.Itoa(x+pixelSize) + " " + strconv.Itoa(y) + "\n"
+		return "M " + strconv.Itoa(x+pixelSize) + " " + strconv.Itoa(y) + "\n", 15
 	}
 	if shade <= 4 {
 		// Not too dark.
 		shade = 4
 	}
-	dir := true
+	down := true
 	for xoff := x; xoff < x+pixelSize; xoff = xoff + shade {
 		pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
-		if dir {
+		if down {
 			pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelSize) + "\n"
-			dir = false
+			down = false
 		} else {
 			pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
-			dir = true
+			down = true
 		}
 	}
-	return pixel
+	return pixel, shade
 }
 
 func convert(file *os.File) (string, error) {
@@ -55,8 +53,11 @@ func convert(file *os.File) (string, error) {
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
         plots += "M " + strconv.Itoa(START_X) + " " + strconv.Itoa((y*pixelSize) + START_Y) + "\n"
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			plots += pixel((x*pixelSize) + START_X, (y*pixelSize) + START_Y, img.At(x, y))
+			plot, shade := pixel((x*pixelSize) + START_X, (y*pixelSize) + START_Y, img.At(x, y))
+			plots += plot
+			fmt.Printf("%02d", shade)
 		}
+		fmt.Print("\n")
 	}
 	return plots, nil
 }
