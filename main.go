@@ -11,28 +11,55 @@ import (
 	"strconv"
 )
 
-func pixel(x int, y int, c color.Color, pixelsize int) (pixel string, shade int) {
+func getShade(c color.Color, pixelsize int) int {
 	r, g, b, _ := c.RGBA()
-	shade = int((r>>12 + g>>12 + b>>12) / 3)
-	if shade >= 15 {
-		// Not too light.
-		return "M " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y) + "\n", 15
+	shade := int((r>>12 + g>>12 + b>>12) / 3)
+	if shade > 15 { // Not too light.
+		return 15
 	}
-	if shade <= 4 {
-		// Not too dark.
-		shade = 4
+	if shade < 0 { // Not too dark.
+		return 0
+	}
+	return shade
+}
+
+func pixelPulse(x int, y int, shade int, pixelsize int) (cmds string) {
+	pixelhalf := pixelsize/2
+	cmds += "M " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
+	if shade >= 15 {
+		cmds += "L " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
+		return cmds
+	}
+	offset := shade + 5
+	down := true
+	for xoff := x; xoff < x+pixelsize; xoff = xoff + offset {
+		if down {
+			cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize-offset) + "\n"
+			down = false
+		} else {
+			cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+offset) + "\n"
+			down = true
+		}
+	}
+	cmds += "L " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
+	return cmds
+}
+
+func pixelSaw(x int, y int, shade int, pixelsize int) (cmds string) {
+	if shade >= 15 {
+		return "M " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y) + "\n"
 	}
 	down := true
 	for xoff := x; xoff < x+pixelsize; xoff = xoff + shade {
 		if down {
-			pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize) + "\n"
+			cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize) + "\n"
 			down = false
 		} else {
-			pixel += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
+			cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
 			down = true
 		}
 	}
-	return pixel, shade
+	return cmds
 }
 
 func convert(file *os.File, xoffset int, yoffset int, pixelsize int) (string, error) {
@@ -45,12 +72,13 @@ func convert(file *os.File, xoffset int, yoffset int, pixelsize int) (string, er
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		plots += "M " + strconv.Itoa(xoffset) + " " + strconv.Itoa((y*pixelsize)+yoffset) + "\n"
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			plot, shade := pixel((x*pixelsize)+xoffset, (y*pixelsize)+yoffset, img.At(x, y), pixelsize)
-			plots += plot
+			shade := getShade(img.At(x, y), pixelsize)
+			plots += pixelPulse((x*pixelsize)+xoffset, (y*pixelsize)+yoffset, shade, pixelsize)
 			fmt.Printf("%02d", shade)
 		}
 		fmt.Print("\n")
 	}
+	// plots += "h"
 	return plots, nil
 }
 
@@ -89,7 +117,7 @@ func main() {
 	defer sFile.Close()
 
 	w := bufio.NewWriter(dFile)
-	plots, err3 := convert(sFile, *xoffset, *yoffset, *pixelsize * 10)
+	plots, err3 := convert(sFile, *xoffset, *yoffset, *pixelsize*10)
 	if err3 != nil {
 		fmt.Println(err3)
 		return
