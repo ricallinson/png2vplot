@@ -110,9 +110,9 @@ func convert(file *os.File, xoffset int, yoffset int, pixelsize int) (string, er
 
 func main() {
 
-	var xoffset = flag.Int("x", 1500, "the offset to use for the X dimension")
-	var yoffset = flag.Int("y", 2000, "the offset to use for the Y dimension")
-	var pixelsize = flag.Int("p", 5, "the size of pixel to plot (1 = 1mm)")
+	var xoffset = flag.Int("x", 0, "the offset to use for the X dimension")
+	var yoffset = flag.Int("y", 0, "the offset to use for the Y dimension")
+	var pixelsize = flag.Int("p", 50, "the size of pixel to plot (10 = 1mm)")
 
 	flag.Parse()
 	source := flag.Arg(0)
@@ -143,7 +143,7 @@ func main() {
 	defer sFile.Close()
 
 	w := bufio.NewWriter(dFile)
-	plots, err3 := convert(sFile, *xoffset, *yoffset, *pixelsize*10)
+	plots, err3 := convert(sFile, *xoffset, *yoffset, *pixelsize)
 	if err3 != nil {
 		fmt.Println(err3)
 		return
