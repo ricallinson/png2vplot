@@ -101,9 +101,9 @@ func convert(file *os.File, xoffset int, yoffset int, pixelsize int) (string, er
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			shade := getShade(img.At(x, y), pixelsize)
 			plots += pixelQuake((x*pixelsize)+xoffset, (y*pixelsize)+yoffset, shade, pixelsize)
-			fmt.Printf("%02d,", shade)
+			// fmt.Printf("%02d,", shade)
 		}
-		fmt.Print("\n")
+		// fmt.Print("\n")
 	}
 	plots += "h\n"
 	return plots, nil
@@ -150,4 +150,6 @@ func main() {
 	}
 	w.WriteString(plots)
 	w.Flush()
+
+	fmt.Println(dest)
 }
