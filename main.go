@@ -9,6 +9,7 @@ import (
 	_ "image/png"
 	"os"
 	"strconv"
+	"strings"
 )
 
 var SHADE_MAX = 16
@@ -16,7 +17,7 @@ var SHADE_MIN = 1
 
 func getShade(c color.Color, pixelsize int) int {
 	r, g, b, _ := c.RGBA()
-	shade := int((r + g + b) / 3) / 4000 // Max is 65535
+	shade := int((r+g+b)/3) / 4000 // Max is 65535
 	if shade > SHADE_MAX {
 		return SHADE_MAX
 	}
@@ -27,13 +28,13 @@ func getShade(c color.Color, pixelsize int) int {
 }
 
 func pixelPulse(x int, y int, shade int, pixelsize int) (cmds string) {
-	pixelhalf := pixelsize/2
+	pixelhalf := pixelsize / 2
 	cmds += "M " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
 	if shade >= SHADE_MAX {
 		cmds += "L " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
 		return cmds
 	}
-	offset := shade + 4 % pixelsize
+	offset := shade + 4%pixelsize
 	down := true
 	for xoff := x; xoff < x+pixelsize; xoff = xoff + offset {
 		if down {
@@ -49,13 +50,13 @@ func pixelPulse(x int, y int, shade int, pixelsize int) (cmds string) {
 }
 
 func pixelQuake(x int, y int, shade int, pixelsize int) (cmds string) {
-	pixelhalf := pixelsize/2
+	pixelhalf := pixelsize / 2
 	cmds += "M " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
 	if shade >= SHADE_MAX {
 		cmds += "L " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
 		return cmds
 	}
-	offset := shade + 4 % pixelsize
+	offset := shade + 4%pixelsize
 	down := true
 	for xoff := x; xoff < x+pixelsize; xoff = xoff + offset {
 		if down {
@@ -74,7 +75,7 @@ func pixelSaw(x int, y int, shade int, pixelsize int) (cmds string) {
 	if shade >= SHADE_MAX {
 		return "M " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y) + "\n"
 	}
-	offset := shade + 4 % pixelsize
+	offset := shade + 4%pixelsize
 	down := true
 	for xoff := x; xoff < x+pixelsize; xoff = xoff + offset {
 		if down {
@@ -124,8 +125,7 @@ func main() {
 	}
 
 	if dest == "" {
-		fmt.Println("A destination vplot file must be provide as the second argument.")
-		return
+		dest = strings.Replace(source, ".png", ".vplot", 1)
 	}
 
 	sFile, err1 := os.Open(source)
