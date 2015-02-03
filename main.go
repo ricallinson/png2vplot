@@ -54,7 +54,7 @@ func pixelQuake(x int, y int, shade int, pixelsize int, dir bool) (cmds string) 
 			cmds += "L " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
 			return cmds
 		}
-		for xoff := x+pixelsize; xoff > x; xoff = xoff - offset {
+		for xoff := x + pixelsize; xoff > x; xoff = xoff - offset {
 			if down {
 				cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize) + "\n"
 				down = false
