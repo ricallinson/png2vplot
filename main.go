@@ -27,7 +27,7 @@ func getShade(c color.Color, pixelsize int) int {
 	return shade
 }
 
-func pixelPulse(x int, y int, shade int, pixelsize int) (cmds string) {
+func pixelQuake(x int, y int, shade int, pixelsize int, dir bool) (cmds string) {
 	pixelhalf := pixelsize / 2
 	cmds += "M " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
 	if shade >= SHADE_MAX {
@@ -36,55 +36,30 @@ func pixelPulse(x int, y int, shade int, pixelsize int) (cmds string) {
 	}
 	offset := shade + 4%pixelsize
 	down := true
-	for xoff := x; xoff < x+pixelsize; xoff = xoff + offset {
-		if down {
-			cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize-offset) + "\n"
-			down = false
-		} else {
-			cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+offset) + "\n"
-			down = true
+	if dir {
+		for xoff := x; xoff < x+pixelsize; xoff = xoff + offset {
+			if down {
+				cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize) + "\n"
+				down = false
+			} else {
+				cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
+				down = true
+			}
 		}
-	}
-	cmds += "L " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
-	return cmds
-}
-
-func pixelQuake(x int, y int, shade int, pixelsize int) (cmds string) {
-	pixelhalf := pixelsize / 2
-	cmds += "M " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
-	if shade >= SHADE_MAX {
 		cmds += "L " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
-		return cmds
-	}
-	offset := shade + 4%pixelsize
-	down := true
-	for xoff := x; xoff < x+pixelsize; xoff = xoff + offset {
-		if down {
-			cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize) + "\n"
-			down = false
-		} else {
-			cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
-			down = true
+		dir = false
+	} else {
+		for xoff := x+pixelsize; xoff > x; xoff = xoff - offset {
+			if down {
+				cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize) + "\n"
+				down = false
+			} else {
+				cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
+				down = true
+			}
 		}
-	}
-	cmds += "L " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
-	return cmds
-}
-
-func pixelSaw(x int, y int, shade int, pixelsize int) (cmds string) {
-	if shade >= SHADE_MAX {
-		return "M " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y) + "\n"
-	}
-	offset := shade + 4%pixelsize
-	down := true
-	for xoff := x; xoff < x+pixelsize; xoff = xoff + offset {
-		if down {
-			cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize) + "\n"
-			down = false
-		} else {
-			cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y) + "\n"
-			down = true
-		}
+		cmds += "L " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
+		dir = true
 	}
 	return cmds
 }
@@ -94,16 +69,25 @@ func convert(file *os.File, xoffset int, yoffset int, pixelsize int) (string, er
 	if err != nil {
 		return "", err
 	}
+	dir := true
 	plots := ""
 	bounds := img.Bounds()
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		plots += "M " + strconv.Itoa(xoffset) + " " + strconv.Itoa((y*pixelsize)+yoffset) + "\n"
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			shade := getShade(img.At(x, y), pixelsize)
-			plots += pixelQuake((x*pixelsize)+xoffset, (y*pixelsize)+yoffset, shade, pixelsize)
-			// fmt.Printf("%02d,", shade)
+		if dir {
+			plots += "M " + strconv.Itoa(xoffset) + " " + strconv.Itoa((y*pixelsize)+yoffset) + "\n"
+			for x := bounds.Min.X; x < bounds.Max.X; x = x + 1 {
+				shade := getShade(img.At(x, y), pixelsize)
+				plots += pixelQuake((x*pixelsize)+xoffset, (y*pixelsize)+yoffset, shade, pixelsize, dir)
+			}
+			dir = false
+		} else {
+			plots += "M " + strconv.Itoa((bounds.Max.X*pixelsize)+xoffset) + " " + strconv.Itoa((y*pixelsize)+yoffset) + "\n"
+			for x := bounds.Max.X - 1; x >= bounds.Min.X; x = x - 1 {
+				shade := getShade(img.At(x, y), pixelsize)
+				plots += pixelQuake((x*pixelsize)+xoffset, (y*pixelsize)+yoffset, shade, pixelsize, dir)
+			}
+			dir = true
 		}
-		// fmt.Print("\n")
 	}
 	plots += "h\n"
 	return plots, nil
