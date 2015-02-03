@@ -29,14 +29,14 @@ func getShade(c color.Color, pixelsize int) int {
 
 func pixelQuake(x int, y int, shade int, pixelsize int, dir bool) (cmds string) {
 	pixelhalf := pixelsize / 2
-	cmds += "M " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
-	if shade >= SHADE_MAX {
-		cmds += "L " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
-		return cmds
-	}
 	offset := shade + 4%pixelsize
 	down := true
 	if dir {
+		cmds += "M " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
+		if shade >= SHADE_MAX {
+			cmds += "L " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
+			return cmds
+		}
 		for xoff := x; xoff < x+pixelsize; xoff = xoff + offset {
 			if down {
 				cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize) + "\n"
@@ -49,6 +49,11 @@ func pixelQuake(x int, y int, shade int, pixelsize int, dir bool) (cmds string) 
 		cmds += "L " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
 		dir = false
 	} else {
+		cmds += "M " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
+		if shade >= SHADE_MAX {
+			cmds += "L " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
+			return cmds
+		}
 		for xoff := x+pixelsize; xoff > x; xoff = xoff - offset {
 			if down {
 				cmds += "L " + strconv.Itoa(xoff) + " " + strconv.Itoa(y+pixelsize) + "\n"
