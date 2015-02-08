@@ -69,11 +69,12 @@ func pixelQuake(x int, y int, shade int, pixelsize int, dir bool) (cmds string) 
 	return cmds
 }
 
-func convert(file *os.File, xoffset int, yoffset int, pixelsize int) (string, error) {
+func convert(file *os.File, xoffset int, yoffset int, pixelsize int, pause int) (string, error) {
 	img, _, err := image.Decode(file)
 	if err != nil {
 		return "", err
 	}
+	p := pause
 	dir := true
 	plots := ""
 	bounds := img.Bounds()
@@ -93,6 +94,11 @@ func convert(file *os.File, xoffset int, yoffset int, pixelsize int) (string, er
 			}
 			dir = true
 		}
+		p--
+		if p == 0 {
+			plots += "P\n"
+			p = pause
+		}
 	}
 	plots += "h\n"
 	return plots, nil
@@ -103,6 +109,7 @@ func main() {
 	var xoffset = flag.Int("x", 0, "the offset to use for the X dimension")
 	var yoffset = flag.Int("y", 0, "the offset to use for the Y dimension")
 	var pixelsize = flag.Int("p", 50, "the size of pixel to plot (10 = 1mm)")
+	var pause = flag.Int("w", 1000, "wait for input before continuing after the given number of rows")
 
 	flag.Parse()
 	source := flag.Arg(0)
@@ -132,7 +139,7 @@ func main() {
 	defer sFile.Close()
 
 	w := bufio.NewWriter(dFile)
-	plots, err3 := convert(sFile, *xoffset, *yoffset, *pixelsize)
+	plots, err3 := convert(sFile, *xoffset, *yoffset, *pixelsize, *pause)
 	if err3 != nil {
 		fmt.Println(err3)
 		return
