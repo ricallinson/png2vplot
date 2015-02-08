@@ -81,6 +81,10 @@ func convert(file *os.File, xoffset int, yoffset int, pixelsize int, pause int) 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		if dir {
 			plots += "M " + strconv.Itoa(xoffset) + " " + strconv.Itoa((y*pixelsize)+yoffset) + "\n"
+			if p == 0 {
+				plots += "P\n"
+				p = pause
+			}
 			for x := bounds.Min.X; x < bounds.Max.X; x = x + 1 {
 				shade := getShade(img.At(x, y), pixelsize)
 				plots += pixelQuake((x*pixelsize)+xoffset, (y*pixelsize)+yoffset, shade, pixelsize, dir)
@@ -88,6 +92,10 @@ func convert(file *os.File, xoffset int, yoffset int, pixelsize int, pause int) 
 			dir = false
 		} else {
 			plots += "M " + strconv.Itoa((bounds.Max.X*pixelsize)+xoffset) + " " + strconv.Itoa((y*pixelsize)+yoffset) + "\n"
+			if p == 0 {
+				plots += "P\n"
+				p = pause
+			}
 			for x := bounds.Max.X - 1; x >= bounds.Min.X; x = x - 1 {
 				shade := getShade(img.At(x, y), pixelsize)
 				plots += pixelQuake((x*pixelsize)+xoffset, (y*pixelsize)+yoffset, shade, pixelsize, dir)
@@ -95,10 +103,6 @@ func convert(file *os.File, xoffset int, yoffset int, pixelsize int, pause int) 
 			dir = true
 		}
 		p--
-		if p == 0 {
-			plots += "P\n"
-			p = pause
-		}
 	}
 	plots += "h\n"
 	return plots, nil
