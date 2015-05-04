@@ -14,6 +14,7 @@ import (
 
 var SHADE_MAX = 16
 var SHADE_MIN = 1
+var WHITE_LINE = "M" // "M" = No Line, "L" = Line
 
 func getShade(c color.Color, pixelsize int) int {
 	r, g, b, _ := c.RGBA()
@@ -34,7 +35,7 @@ func pixelQuake(x int, y int, shade int, pixelsize int, dir bool) (cmds string) 
 	if dir {
 		cmds += "M " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
 		if shade >= SHADE_MAX {
-			cmds += "L " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
+			cmds += WHITE_LINE + " " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
 			return cmds
 		}
 		for xoff := x; xoff < x+pixelsize; xoff = xoff + offset {
@@ -51,7 +52,7 @@ func pixelQuake(x int, y int, shade int, pixelsize int, dir bool) (cmds string) 
 	} else {
 		cmds += "M " + strconv.Itoa(x+pixelsize) + " " + strconv.Itoa(y+pixelhalf) + "\n"
 		if shade >= SHADE_MAX {
-			cmds += "L " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
+			cmds += WHITE_LINE + " " + strconv.Itoa(x) + " " + strconv.Itoa(y+pixelhalf) + "\n"
 			return cmds
 		}
 		for xoff := x + pixelsize; xoff > x; xoff = xoff - offset {
