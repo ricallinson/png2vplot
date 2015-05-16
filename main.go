@@ -14,7 +14,7 @@ import (
 
 var SHADE_MAX = 16
 var SHADE_MIN = 1
-var WHITE_LINE = "M" // "M" = No Line, "L" = Line
+var WHITE_LINE = "L" // "M" = No Line, "L" = Line
 
 func getShade(c color.Color, pixelsize int) int {
 	r, g, b, _ := c.RGBA()
